@@ -60,7 +60,7 @@ void free_package_list(package_list_t *list) {
 
 // Execute command via SSH and return output
 static char* execute_ssh_command(const char *host, const char *command) {
-    char ssh_cmd[MAX_CMD_LEN];
+    char ssh_cmd[MAX_CMD_LEN + 1024];
     snprintf(ssh_cmd, sizeof(ssh_cmd), "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no %s '%s' 2>/dev/null",
              host, command);
 

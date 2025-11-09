@@ -10,7 +10,7 @@
 #include "distro.h"
 #include "output.h"
 
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 
 static const struct option long_options[] = {
     {"debug", no_argument, 0, 'D'},

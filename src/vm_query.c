@@ -181,7 +181,7 @@ static void query_dependency(const char *host, const distro_info_t *distro,
 
         case DISTRO_OPENSUSE:
             snprintf(command, sizeof(command),
-                    "zypper search --match-exact -t package %s-devel | grep '^i\\|^v' | awk '{print $3}'",
+                    "zypper search --match-substrings -t package 'lib%s' | awk '/-devel/ { print $2 }'",
                     lib_name);
             break;
 

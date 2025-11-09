@@ -2,9 +2,9 @@
 
 A tool to analyze C/C++ source code and generate distribution-specific dependency installation commands by querying package managers on remote VMs.
 
----
-This project is in alpha stage and is currently not successfully building as of 2025-11-08 :)
----
+```
+This project is in alpha stage and is currently not fully functional as of 2025-11-09.
+```
 
 ## Features
 
@@ -83,19 +83,13 @@ Querying arch packages...
 ## Dependency Installation Commands
 
 ### debian
-```bash
 apt-get install -y libssl-dev libcurl4-openssl-dev libsqlite3-dev
-```
 
 ### ubuntu
-```bash
 apt-get install -y libssl-dev libcurl4-openssl-dev libsqlite3-dev
-```
 
 ### arch
-```bash
 pacman -S --noconfirm openssl curl sqlite
-```
 ```
 
 ## How It Works
@@ -146,6 +140,7 @@ ssh user@debian-vm "apt-cache search libssl"
 - Support for other languages (Python, Rust, Go, etc.)
 - Web service mode for querying without local VMs
 - Better header-to-package mapping with pkg-config integration
+- Support for using Docker instead of VMs.
 
 ## License
 

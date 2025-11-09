@@ -1,10 +1,11 @@
 #include <string.h>
 #include <strings.h>
+
 #include "distro.h"
 
 static const distro_info_t distros[] = {
-    {"debian", DISTRO_DEBIAN, "apt", "apt-get install -y"},
-    {"ubuntu", DISTRO_UBUNTU, "apt", "apt-get install -y"},
+    {"debian", DISTRO_DEBIAN, "apt", "apt install -y"},
+    {"ubuntu", DISTRO_UBUNTU, "apt", "apt install -y"},
     {"arch", DISTRO_ARCH, "pacman", "pacman -S --noconfirm"},
     {"alpine", DISTRO_ALPINE, "apk", "apk add"},
     {"gentoo", DISTRO_GENTOO, "emerge", "emerge"},
@@ -15,14 +16,14 @@ int get_distro_count(void) {
     return sizeof(distros) / sizeof(distros[0]);
 }
 
-const char* get_distro_name(int index) {
+const char *get_distro_name(int index) {
     if (index < 0 || index >= get_distro_count()) {
         return NULL;
     }
     return distros[index].name;
 }
 
-const distro_info_t* get_distro_by_name(const char *name) {
+const distro_info_t *get_distro_by_name(const char *name) {
     if (!name) return NULL;
 
     for (int i = 0; i < get_distro_count(); i++) {

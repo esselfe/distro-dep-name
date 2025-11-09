@@ -1,5 +1,5 @@
 #ifndef VM_QUERY_H
-#define VM_QUERY_H
+#define VM_QUERY_H 1
 
 #include "parser.h"
 

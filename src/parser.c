@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <ctype.h>
+
+#include "ddn_config.h"
 #include "parser.h"
 
 #define INITIAL_CAPACITY 32
@@ -57,6 +60,9 @@ void free_dependency_list(dependency_list_t *list) {
 
 // Parse #include statements from C/C++ files
 static void parse_c_file(const char *filepath, dependency_list_t *list) {
+    if (config.debug)
+        printf("ddn:parse_c_file(): parsing '%s'\n", filepath);
+
     FILE *f = fopen(filepath, "r");
     if (!f) return;
 
@@ -93,6 +99,7 @@ static void parse_c_file(const char *filepath, dependency_list_t *list) {
                     strncpy(header, start, len);
                     header[len] = '\0';
 
+                    if (config.debug) printf("  found header '%s'\n", header);
                     add_dependency(list, header, DEP_TYPE_HEADER);
                     free(header);
                 }
@@ -105,6 +112,9 @@ static void parse_c_file(const char *filepath, dependency_list_t *list) {
 
 // Parse -l flags from Makefile
 static void parse_makefile(const char *filepath, dependency_list_t *list) {
+    if (config.debug)
+        printf("ddn:parse_makefile(): parsing '%s'\n", filepath);
+
     FILE *f = fopen(filepath, "r");
     if (!f) return;
 
@@ -124,6 +134,7 @@ static void parse_makefile(const char *filepath, dependency_list_t *list) {
             }
 
             if (i > 0) {
+                if (config.debug) printf("  found library '%s'\n", libname);
                 add_dependency(list, libname, DEP_TYPE_LIBRARY);
             }
         }
@@ -134,13 +145,19 @@ static void parse_makefile(const char *filepath, dependency_list_t *list) {
 
 // Recursively scan directory for source files and Makefiles
 static void scan_directory(const char *path, dependency_list_t *list) {
+    if (config.debug)
+        printf("ddn:scan_directory(): scanning '%s'\n", path);
+
     struct stat st;
     if (stat(path, &st) != 0) return;
+    if (config.debug)
+        printf("ddn:scan_directory(): stat() ok\n");
 
     if (S_ISREG(st.st_mode)) {
         // Single file
         const char *ext = strrchr(path, '.');
         if (ext) {
+            if (config.debug) printf("ddn:scan_directory(): got ext '%s'\n", ext);
             if (strcmp(ext, ".c") == 0 || strcmp(ext, ".h") == 0 ||
                 strcmp(ext, ".cpp") == 0 || strcmp(ext, ".cc") == 0 ||
                 strcmp(ext, ".cxx") == 0 || strcmp(ext, ".hpp") == 0) {
@@ -159,7 +176,13 @@ static void scan_directory(const char *path, dependency_list_t *list) {
     if (!S_ISDIR(st.st_mode)) return;
 
     DIR *dir = opendir(path);
-    if (!dir) return;
+    if (!dir) {
+        if (config.debug)
+            printf("ddn:scan_directory(): (subdir) opendir() failed: %s\n", strerror(errno));
+
+        return;
+    }
+    if (config.debug) printf("ddn:scan_directory(): (subdir) opendir() ok\n");
 
     struct dirent *entry;
     while ((entry = readdir(dir))) {
@@ -172,12 +195,15 @@ static void scan_directory(const char *path, dependency_list_t *list) {
 
         struct stat entry_st;
         if (stat(filepath, &entry_st) != 0) continue;
+        if (config.debug) printf("ddn:scan_directory(): (subdir) stat() ok\n");
 
         if (S_ISDIR(entry_st.st_mode)) {
             scan_directory(filepath, list);
         } else if (S_ISREG(entry_st.st_mode)) {
+            if (config.debug) printf("ddn:scan_directory(): (subdir) regular file found\n");
             const char *ext = strrchr(entry->d_name, '.');
             if (ext) {
+                if (config.debug) printf("ddn:scan_directory(): (subdir) ext '%s'\n", ext);
                 if (strcmp(ext, ".c") == 0 || strcmp(ext, ".h") == 0 ||
                     strcmp(ext, ".cpp") == 0 || strcmp(ext, ".cc") == 0 ||
                     strcmp(ext, ".cxx") == 0 || strcmp(ext, ".hpp") == 0) {
@@ -195,8 +221,16 @@ static void scan_directory(const char *path, dependency_list_t *list) {
 }
 
 dependency_list_t* parse_dependencies(const char *path) {
+    if (config.debug)
+        printf("ddn:parse_dependencies(): parsing '%s'\n", path);
+    
     dependency_list_t *list = create_dependency_list();
-    if (!list) return NULL;
+    if (!list) {
+        if (config.debug)
+            printf("ddn:parse_dependencies(): create_dependency_list() returned NULL!\n");
+        
+        return NULL;
+    }
 
     scan_directory(path, list);
 

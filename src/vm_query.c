@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// ddn test
+#include <jansson.h>
+
+#include "ddn_config.h"
 #include "vm_query.h"
 #include "distro.h"
 
@@ -60,8 +65,11 @@ void free_package_list(package_list_t *list) {
 
 // Execute command via SSH and return output
 static char* execute_ssh_command(const char *host, const char *command) {
+    if (config.debug)
+        printf("ddn:execute_ssh_command(): (subdir) running '%s'\n", command);
+    
     char ssh_cmd[MAX_CMD_LEN + 1024];
-    snprintf(ssh_cmd, sizeof(ssh_cmd), "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no %s '%s' 2>/dev/null",
+    snprintf(ssh_cmd, sizeof(ssh_cmd), "ssh %s -- %s 2>/dev/null",
              host, command);
 
     FILE *pipe = popen(ssh_cmd, "r");
@@ -85,15 +93,6 @@ static char* get_vm_host(const char *distro_name) {
     char env_var[128];
     snprintf(env_var, sizeof(env_var), "DISTRO_VM_%s", distro_name);
 
-    // Convert to uppercase
-    for (char *p = env_var; *p; p++) {
-        if (*p >= 'a' && *p <= 'z') {
-            *p = *p - 'a' + 'A';
-        } else if (*p == '-') {
-            *p = '_';
-        }
-    }
-
     char *host = getenv(env_var);
     return host ? strdup(host) : NULL;
 }
@@ -101,20 +100,24 @@ static char* get_vm_host(const char *distro_name) {
 // Map header file to library name (simple heuristic)
 static const char* header_to_library(const char *header) {
     // Common mappings
-    if (strstr(header, "ssl") || strstr(header, "openssl")) return "ssl";
-    if (strstr(header, "crypto")) return "crypto";
-    if (strstr(header, "curl")) return "curl";
-    if (strstr(header, "pthread")) return "pthread";
+    if (strstr(header, "ssl.h")) return "ssl";
+    if (strstr(header, "crypto.h")) return "ssl";
+    if (strstr(header, "curl.h")) return "curl";
+    if (strstr(header, "pthread.h")) return "c";
     if (strstr(header, "z.h")) return "z";
-    if (strstr(header, "sqlite")) return "sqlite3";
-    if (strstr(header, "mysql")) return "mysqlclient";
-    if (strstr(header, "postgres") || strstr(header, "pq")) return "pq";
-    if (strstr(header, "pcre")) return "pcre";
-    if (strstr(header, "xml2")) return "xml2";
-    if (strstr(header, "json")) return "json-c";
-    if (strstr(header, "readline")) return "readline";
-    if (strstr(header, "ncurses")) return "ncurses";
-    if (strstr(header, "pcap")) return "pcap";
+    if (strstr(header, "sqlite3.h")) return "sqlite3";
+    if (strstr(header, "mysql.h")) return "mysqlclient";
+    if (strstr(header, "postgres.h") || strstr(header, "pq")) return "pq";
+    if (strstr(header, "pcre.h")) return "pcre";
+    if (strstr(header, "xml2.h")) return "xml2";
+    if (strstr(header, "json.h")) return "json-c";
+    if (strstr(header, "readline.h")) return "readline";
+    if (strstr(header, "ncurses.h")) return "ncurses";
+    if (strstr(header, "pcap.h")) return "pcap";
+    if (strstr(header, "jansson.h")) return "jansson";
+    if (strstr(header, "stdio.h")) return "c";
+    if (strstr(header, "stdlib.h")) return "c";
+    if (strstr(header, "unistd.h")) return "c";
 
     return NULL;
 }

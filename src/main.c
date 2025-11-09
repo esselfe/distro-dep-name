@@ -1,30 +1,40 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <getopt.h>
+
+#include "ddn_config.h"
 #include "parser.h"
 #include "vm_query.h"
 #include "distro.h"
 #include "output.h"
 
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 
-typedef struct {
-    char **distros;
-    int distro_count;
-    char *source_path;
-    int all_distros;
-} config_t;
+static const struct option long_options[] = {
+    {"debug", no_argument, 0, 'D'},
+    {"distro", required_argument, 0, 'd'},
+    {"all", no_argument, 0, 'a'},
+    {"list-distros", no_argument, 0, 'l'},
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'V'},
+    {0, 0, 0, 0}
+};
+static const char *short_options = "Dd:alhV";
+
+config_t config;
 
 void print_usage(const char *prog_name) {
     printf("Usage: %s [OPTIONS] <source_path>\n", prog_name);
     printf("\nAnalyze source code and generate distro-specific dependency install commands.\n\n");
     printf("Options:\n");
+    printf("  -D, --debug            Show detailed informations for debugging purposes\n");
     printf("  -d, --distro <name>    Specify a distro (can be used multiple times)\n");
     printf("  -a, --all              Query all supported distros (default)\n");
     printf("  -l, --list-distros     List supported distros and exit\n");
     printf("  -h, --help             Show this help message\n");
-    printf("  -v, --version          Show version information\n");
+    printf("  -V, --version          Show version information\n");
     printf("\nSupported distros:\n");
     for (int i = 0; i < get_distro_count(); i++) {
         printf("  - %s\n", get_distro_name(i));
@@ -36,28 +46,21 @@ void print_version(void) {
 }
 
 int main(int argc, char *argv[]) {
-    config_t config = {0};
     config.all_distros = 1; // Default to all distros
 
     int distro_capacity = 10;
     config.distros = malloc(distro_capacity * sizeof(char*));
     if (!config.distros) {
-        fprintf(stderr, "Memory allocation failed\n");
-        return 1;
+        fprintf(stderr, "ddn:main(): Memory allocation failed\n");
+        return ENOMEM;
     }
 
-    static struct option long_options[] = {
-        {"distro", required_argument, 0, 'd'},
-        {"all", no_argument, 0, 'a'},
-        {"list-distros", no_argument, 0, 'l'},
-        {"help", no_argument, 0, 'h'},
-        {"version", no_argument, 0, 'v'},
-        {0, 0, 0, 0}
-    };
-
     int opt;
-    while ((opt = getopt_long(argc, argv, "d:alhv", long_options, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
         switch (opt) {
+            case 'D':
+                config.debug = 1;
+                break;
             case 'd':
                 if (config.distro_count >= distro_capacity) {
                     distro_capacity *= 2;
@@ -84,7 +87,7 @@ int main(int argc, char *argv[]) {
                 print_usage(argv[0]);
                 free(config.distros);
                 return 0;
-            case 'v':
+            case 'V':
                 print_version();
                 free(config.distros);
                 return 0;
@@ -105,7 +108,9 @@ int main(int argc, char *argv[]) {
     config.source_path = argv[optind];
 
     // Parse source code
-    printf("Analyzing source code at: %s\n", config.source_path);
+    if (config.debug)
+        printf("Analyzing source code at: %s\n", config.source_path);
+
     dependency_list_t *deps = parse_dependencies(config.source_path);
     if (!deps) {
         fprintf(stderr, "Failed to parse dependencies\n");

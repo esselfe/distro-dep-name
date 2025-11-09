@@ -1,5 +1,5 @@
 #ifndef PARSER_H
-#define PARSER_H
+#define PARSER_H 1
 
 typedef enum {
     DEP_TYPE_HEADER,    // From #include

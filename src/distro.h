@@ -1,5 +1,5 @@
 #ifndef DISTRO_H
-#define DISTRO_H
+#define DISTRO_H 1
 
 typedef enum {
     DISTRO_DEBIAN,

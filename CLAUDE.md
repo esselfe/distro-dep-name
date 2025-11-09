@@ -217,6 +217,7 @@ Then call from `scan_directory()`.
 - Implement pkg-config integration
 - Support for Python/Rust/Go dependency detection
 - Parallel VM queries for speed
+- Docker-based distro querying as alternative to VMs (lighter weight, faster setup)
 
 ### Long Term
 - Pre-built package database mode (no VMs needed)

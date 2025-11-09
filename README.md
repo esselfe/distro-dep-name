@@ -39,9 +39,12 @@ export DISTRO_VM_GENTOO="user@gentoo-vm"
 export DISTRO_VM_OPENSUSE="user@opensuse-vm"
 ```
 
+**Important**: Environment variable names must be uppercase (e.g., `DISTRO_VM_DEBIAN`).
+
 **Requirements:**
 - SSH access to VMs with key-based authentication (no password)
 - Package manager tools installed on each VM
+- Proper SSH configuration in `~/.ssh/config` for timeouts and host verification (v0.0.3+)
 
 ## Usage
 
@@ -64,10 +67,27 @@ export DISTRO_VM_OPENSUSE="user@opensuse-vm"
 ./distro-dep-name -l
 ```
 
+### Enable debug output (v0.0.3+)
+
+```bash
+./distro-dep-name -D /path/to/source
+```
+
+Shows verbose output including:
+- Files being parsed
+- Dependencies found
+- SSH commands executed
+
 ### Help
 
 ```bash
 ./distro-dep-name -h
+```
+
+### Version
+
+```bash
+./distro-dep-name -V
 ```
 
 ## Example Output
@@ -83,10 +103,10 @@ Querying arch packages...
 ## Dependency Installation Commands
 
 ### debian
-apt-get install -y libssl-dev libcurl4-openssl-dev libsqlite3-dev
+apt install -y libssl-dev libcurl4-openssl-dev libsqlite3-dev
 
 ### ubuntu
-apt-get install -y libssl-dev libcurl4-openssl-dev libsqlite3-dev
+apt install -y libssl-dev libcurl4-openssl-dev libsqlite3-dev
 
 ### arch
 pacman -S --noconfirm openssl curl sqlite

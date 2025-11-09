@@ -13,6 +13,7 @@ This file contains architectural decisions, implementation notes, and guidance f
 ```
 src/
 ├── main.c          - CLI argument parsing, program flow orchestration
+├── ddn_config.h    - Global configuration structure and extern declarations
 ├── parser.c/h      - Source code and Makefile parsing
 ├── vm_query.c/h    - SSH-based VM querying and package resolution
 ├── distro.c/h      - Distribution metadata and configuration
@@ -50,8 +51,8 @@ src/
 
 **Example**:
 ```bash
-export DISTRO_VM_DEBIAN="user@192.168.1.10"
-export DISTRO_VM_ARCH="user@arch-vm.local"
+export DISTRO_VM_debian="user@192.168.1.10"
+export DISTRO_VM_arch="user@arch-vm.local"
 ```
 
 **Rationale**:
@@ -60,15 +61,35 @@ export DISTRO_VM_ARCH="user@arch-vm.local"
 - Standard Unix pattern
 - No parsing complexity
 
+**Global Configuration**: Runtime configuration is stored in a global `config_t` structure defined in `ddn_config.h`:
+- `debug`: Enable verbose debugging output (-D flag)
+- `distros`: Array of distro names to query
+- `distro_count`: Number of distros in the array
+- `source_path`: Path to source code directory
+- `all_distros`: Query all supported distros (default)
+
 ### 3. Heuristic Header-to-Library Mapping
 
 **Location**: `vm_query.c:header_to_library()`
 
-**Approach**: Hardcoded mappings for common libraries:
-- `ssl/openssl` → `ssl`
-- `curl` → `curl`
-- `pthread` → `pthread`
+**Approach**: Hardcoded mappings for common libraries using specific header filename matching:
+- `ssl.h` → `ssl`
+- `crypto.h` → `ssl`
+- `curl.h` → `curl`
+- `pthread.h` → `c`
 - `z.h` → `z`
+- `sqlite3.h` → `sqlite3`
+- `mysql.h` → `mysqlclient`
+- `pcre.h` → `pcre`
+- `xml2.h` → `xml2`
+- `json.h` → `json-c`
+- `readline.h` → `readline`
+- `ncurses.h` → `ncurses`
+- `pcap.h` → `pcap`
+- `jansson.h` → `jansson`
+- Standard C headers (`stdio.h`, `stdlib.h`, `unistd.h`) → `c`
+
+**Improvement** (v0.0.3): Changed from substring matching (e.g., `strstr(header, "ssl")`) to exact filename matching (e.g., `strstr(header, "ssl.h")`) for better accuracy.
 
 **Limitation**: Not comprehensive, may miss less common libraries.
 
@@ -130,15 +151,20 @@ Currently minimal:
 
 **Function**: `execute_ssh_command()` in `vm_query.c`
 
-**Implementation**:
+**Implementation** (v0.0.3):
 ```c
-ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no <host> '<command>' 2>/dev/null
+ssh <host> -- <command> 2>/dev/null
 ```
+
+**Changes from v0.0.2**:
+- Removed `-o ConnectTimeout=5` (relies on system SSH configuration)
+- Removed `-o StrictHostKeyChecking=no` (improved security)
+- Uses `--` separator before command for better argument handling
 
 **Security Considerations**:
 - Assumes key-based authentication
-- `StrictHostKeyChecking=no` is insecure for production
 - Command injection possible if library names aren't sanitized
+- Relies on proper SSH configuration in `~/.ssh/config` for timeouts and host verification
 
 **TODO**: Add proper command escaping and security hardening.
 
@@ -200,8 +226,8 @@ Then call from `scan_directory()`.
 1. **CMake/Meson not supported**: Only Makefiles are parsed
 2. **Incomplete header mappings**: Many headers won't map correctly
 3. **No deduplication across files**: Same dependency may be queried multiple times
-4. **SSH timeout handling**: 5-second timeout may be too short for slow networks
-5. **No progress indicators**: User has no feedback during long queries
+4. **SSH timeout configuration**: Relies on system SSH config; no built-in timeout (changed in v0.0.3)
+5. **No progress indicators**: User has no feedback during long queries (use `-D` flag for verbose output)
 6. **Security**: Command injection vulnerabilities exist
 
 ## Future Improvements
@@ -236,12 +262,22 @@ make install      # Install to /usr/local/bin
 
 ### Debugging
 ```bash
-# Compile with debug symbols
+# Run with runtime debug output (v0.0.3+)
+./distro-dep-name -D /path/to/source
+
+# Compile with debug symbols for gdb
 make CFLAGS="-Wall -Wextra -g -O0 -std=c11"
 
 # Run with gdb
 gdb ./distro-dep-name
 ```
+
+**Debug Flag** (`-D, --debug`): Enables verbose output showing:
+- File paths being parsed
+- Headers and libraries found
+- SSH commands being executed
+- Detailed function entry/exit information
+- Error details with errno messages
 
 ### Testing SSH Queries Manually
 ```bash
@@ -253,7 +289,14 @@ ssh user@arch-vm "pacman -Ss '^openssl$' | grep -v '^ '"
 ```
 
 ### Adding Debug Output
-Add to relevant functions:
+
+**Runtime Debug** (v0.0.3+): Use the global `config.debug` flag:
+```c
+if (config.debug)
+    printf("ddn:function_name(): Debug message here\n");
+```
+
+**Compile-Time Debug** (legacy): Add preprocessor conditionals:
 ```c
 #ifdef DEBUG
 fprintf(stderr, "DEBUG: Processing dependency: %s\n", dep->name);
@@ -262,10 +305,11 @@ fprintf(stderr, "DEBUG: Processing dependency: %s\n", dep->name);
 
 Compile with: `make CFLAGS="-DDEBUG -g"`
 
+**Recommendation**: Prefer runtime debug (`config.debug`) for user-controllable debugging, use compile-time `#ifdef DEBUG` for development-only instrumentation.
+
 ## Code Style
 
 - **Indentation**: 4 spaces (no tabs)
-- **Braces**: K&R style
 - **Naming**: `snake_case` for functions and variables
 - **Headers**: Include guards with `#ifndef HEADER_H`
 - **Memory**: Always pair `malloc` with `free`
@@ -296,4 +340,4 @@ When modifying this codebase:
 
 ---
 
-*Generated with Claude Code - Last updated: 2025-11-08*
+*Generated with Claude Code - Last updated: 2025-11-09 (v0.0.3)*

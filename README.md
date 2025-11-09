@@ -31,15 +31,13 @@ make
 The tool connects to VMs via SSH to query package managers. Configure VM hostnames using environment variables:
 
 ```bash
-export DISTRO_VM_DEBIAN="user@debian-vm"
-export DISTRO_VM_UBUNTU="user@ubuntu-vm"
-export DISTRO_VM_ARCH="user@arch-vm"
-export DISTRO_VM_ALPINE="user@alpine-vm"
-export DISTRO_VM_GENTOO="user@gentoo-vm"
-export DISTRO_VM_OPENSUSE="user@opensuse-vm"
+export DISTRO_VM_debian="user@debian-vm"
+export DISTRO_VM_ubuntu="user@ubuntu-vm"
+export DISTRO_VM_arch="user@arch-vm"
+export DISTRO_VM_alpine="user@alpine-vm"
+export DISTRO_VM_gentoo="user@gentoo-vm"
+export DISTRO_VM_opensuse="user@opensuse-vm"
 ```
-
-**Important**: Environment variable names must be uppercase (e.g., `DISTRO_VM_DEBIAN`).
 
 **Requirements:**
 - SSH access to VMs with key-based authentication (no password)

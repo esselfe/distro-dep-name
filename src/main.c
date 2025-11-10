@@ -10,7 +10,7 @@
 #include "distro.h"
 #include "output.h"
 
-#define VERSION "0.0.4"
+#define VERSION "0.0.5"
 
 static const struct option long_options[] = {
     {"debug", no_argument, 0, 'D'},
@@ -42,7 +42,7 @@ void print_usage(const char *prog_name) {
 }
 
 void print_version(void) {
-    printf("distro-dep-name version %s\n", VERSION);
+    printf("distro-dep-name version %s\nhttps://github.com/esselfe/distro-dep-name/\n", VERSION);
 }
 
 int main(int argc, char *argv[]) {

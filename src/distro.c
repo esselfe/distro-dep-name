@@ -4,12 +4,13 @@
 #include "distro.h"
 
 static const distro_info_t distros[] = {
-    {"debian", DISTRO_DEBIAN, "apt", "apt install -y"},
-    {"ubuntu", DISTRO_UBUNTU, "apt", "apt install -y"},
     {"arch", DISTRO_ARCH, "pacman", "pacman -S --noconfirm"},
     {"alpine", DISTRO_ALPINE, "apk", "apk add"},
+    {"debian", DISTRO_DEBIAN, "apt", "apt install -y"},
+    {"fedora", DISTRO_FEDORA, "dnf", "dnf install"},
     {"gentoo", DISTRO_GENTOO, "emerge", "emerge"},
-    {"opensuse", DISTRO_OPENSUSE, "zypper", "zypper install -y"}
+    {"opensuse", DISTRO_OPENSUSE, "zypper", "zypper install -y"},
+    {"ubuntu", DISTRO_UBUNTU, "apt", "apt install -y"}
 };
 
 int get_distro_count(void) {

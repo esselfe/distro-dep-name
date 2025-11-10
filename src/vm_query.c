@@ -173,6 +173,12 @@ static void query_dependency(const char *host, const distro_info_t *distro,
                     lib_name);
             break;
 
+        case DISTRO_FEDORA:
+            snprintf(command, sizeof(command),
+                    "dnf -C search %s-devel | grep '%s-devel.x86_64' | sed 's/\\.x86_64//g' | awk '{ print $1 }'",
+                    lib_name, lib_name);
+            break;
+
         case DISTRO_GENTOO:
             snprintf(command, sizeof(command),
                     "emerge -s '^%s$' | grep -A1 'Latest version' | tail -1 | awk '{print $1}'",

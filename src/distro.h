@@ -2,12 +2,13 @@
 #define DISTRO_H 1
 
 typedef enum {
-    DISTRO_DEBIAN,
-    DISTRO_UBUNTU,
     DISTRO_ARCH,
     DISTRO_ALPINE,
+    DISTRO_DEBIAN,
+    DISTRO_FEDORA,
     DISTRO_GENTOO,
-    DISTRO_OPENSUSE
+    DISTRO_OPENSUSE,
+    DISTRO_UBUNTU
 } distro_type_t;
 
 typedef struct {

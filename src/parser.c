@@ -88,10 +88,11 @@ static void parse_c_file(const char *filepath, dependency_list_t *list) {
                 if (*p == '<') {
                     start = p + 1;
                     end = strchr(start, '>');
-                } else if (*p == '"') {
+                } /* ignore local headers
+                else if (*p == '"') {
                     start = p + 1;
                     end = strchr(start, '"');
-                }
+                } */
 
                 if (start && end) {
                     size_t len = end - start;

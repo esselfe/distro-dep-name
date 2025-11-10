@@ -12,13 +12,14 @@ This project is in alpha stage and is currently not fully functional as of 2025-
 - Parses Makefiles for `-l` linker flags
 - Queries package managers on remote VMs to find exact package names
 - Supports multiple Linux distributions:
-  - Debian
-  - Ubuntu
-  - Arch Linux
   - Alpine Linux
+  - Arch Linux
+  - Debian
   - Gentoo
+  - Fedora
   - openSUSE
-- Generates ready-to-run installation commands
+  - Ubuntu
+- Generates ready-to-run installation commands, ideal for a "Dependencies" section in a project README.md
 
 ## Building
 
@@ -31,18 +32,18 @@ make
 The tool connects to VMs via SSH to query package managers. Configure VM hostnames using environment variables:
 
 ```bash
-export DISTRO_VM_debian="user@debian-vm"
-export DISTRO_VM_ubuntu="user@ubuntu-vm"
-export DISTRO_VM_arch="user@arch-vm"
 export DISTRO_VM_alpine="user@alpine-vm"
+export DISTRO_VM_arch="user@arch-vm"
+export DISTRO_VM_debian="user@debian-vm"
+export DISTRO_VM_fedora="user@fedora-vm"
 export DISTRO_VM_gentoo="user@gentoo-vm"
 export DISTRO_VM_opensuse="user@opensuse-vm"
+export DISTRO_VM_ubuntu="user@ubuntu-vm"
 ```
 
 **Requirements:**
 - SSH access to VMs with key-based authentication (no password)
 - Package manager tools installed on each VM
-- Proper SSH configuration in `~/.ssh/config` for timeouts and host verification (v0.0.3+)
 
 ## Usage
 
@@ -129,8 +130,9 @@ Each VM should have:
 1. **SSH Server** configured with key-based authentication
 2. **Package Manager** installed and updated:
    - Debian/Ubuntu: `apt-cache`
-   - Arch: `pacman`
    - Alpine: `apk`
+   - Arch: `pacman`
+   - Fedora: `dnf`
    - Gentoo: `emerge`, `eix`
    - openSUSE: `zypper`
 
